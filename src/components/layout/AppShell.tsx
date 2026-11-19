@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Dashboard from "../dashboard/Dashboard";
 import Incidents from "../incidents/Incidents";
+import Operations from "../operations/Operations";
 
 type Page =
   | "Command Center"
@@ -27,6 +28,11 @@ function AppShell() {
 
     if (activePage === "Incidents") {
       return <Incidents />;
+    }
+
+
+    if (activePage === "Operations") {
+      return <Operations />;
     }
 
     return (
