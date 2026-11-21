@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import IncidentDetails from "./IncidentDetails";
 import IncidentStats from "./IncidentStats";
 import IncidentTable, { type Incident } from "./IncidentTable";
+import CreateIncidentModal from "./CreateIncidentModal";
 
 const initialIncidents: Incident[] = [
   {
@@ -68,6 +69,8 @@ export default function Incidents() {
     "All"
   );
 
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
   const filteredIncidents = useMemo(() => {
     const query = search.trim().toLowerCase();
 
@@ -104,6 +107,36 @@ export default function Incidents() {
     );
   };
 
+  const handleCreateIncident = (
+    data: Pick<Incident, "title" | "severity" | "service" | "team">
+  ) => {
+    const nextId =
+      Math.max(
+        1048,
+        ...incidents.map((incident) => {
+          const match = incident.id.match(/^INC-(\d+)$/);
+          return match ? Number(match[1]) : 1048;
+        })
+      ) + 1;
+
+    const newIncident: Incident = {
+      id: `INC-${nextId}`,
+      ...data,
+      status: "Investigating",
+      created: "Just now",
+    };
+
+    setIncidents((current) => [newIncident, ...current]);
+    setSelectedIncident(newIncident);
+
+    // Ensure the new incident is visible even when filters are active.
+    setSearch("");
+    setSeverityFilter("All");
+    setStatusFilter("All");
+
+    setIsCreateModalOpen(false);
+  };
+
   return (
     <section className="space-y-6">
       {/* Page heading */}
@@ -125,6 +158,7 @@ export default function Incidents() {
 
         <button
           type="button"
+          onClick={() => setIsCreateModalOpen(true)}
           className="rounded-lg bg-white px-4 py-2.5 text-xs font-semibold text-slate-900 transition hover:bg-slate-200"
         >
           + New Incident
@@ -204,6 +238,14 @@ export default function Incidents() {
           onStatusChange={handleStatusChange}
         />
       </div>
+
+      {/* Create incident modal */}
+      {isCreateModalOpen && (
+        <CreateIncidentModal
+          onClose={() => setIsCreateModalOpen(false)}
+          onCreate={handleCreateIncident}
+        />
+      )}
     </section>
   );
 }
