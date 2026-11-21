@@ -1,75 +1,131 @@
-# React + TypeScript + Vite
+# CRAFT — Operations Management Platform
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**A modern operations management platform designed to help teams monitor incidents, coordinate operations, and improve operational visibility.**
 
-Currently, two official plugins are available:
+CRAFT is a portfolio project focused on building a practical, scalable operations management application using modern frontend technologies, with plans to introduce backend services, persistent data storage, and AI-powered operational assistance.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Project Overview
 
-## React Compiler
+CRAFT aims to provide a centralized workspace for operations teams to manage incidents, monitor operational activity, and make informed decisions.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+The application is being developed incrementally, following real-world software engineering practices and a modular architecture.
 
-## Expanding the ESLint configuration
+## Current Features
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- **Operations Dashboard** — Centralized operational overview with metrics and activity information.
+- **Incident Management** — View, search, and filter incidents.
+- **Incident Creation** — Create new incidents with severity, service, and team information.
+- **Incident Status Management** — Update incident statuses.
+- **Incident Details** — View detailed information for selected incidents.
+- **Modular UI Architecture** — Reusable React components organized by application module.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Technology Stack
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+| Technology   | Purpose                       |
+| ------------ | ----------------------------- |
+| React        | User interface                |
+| TypeScript   | Type safety                   |
+| Vite         | Development and build tooling |
+| Tailwind CSS | Styling                       |
+| Yarn         | Package management            |
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Project Structure
 
+```text
+src/
+├── assets/
+├── components/
+│   ├── dashboard/
+│   ├── incidents/
+│   ├── layout/
+│   └── operations/
+├── App.tsx
+├── main.tsx
+└── index.css
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+The application uses a component-based architecture to keep features modular and maintainable.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Getting Started
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### Prerequisites
 
+- Node.js
+- Yarn 1.x
+
+### Installation
+
+Clone the repository:
+
+```bash
+git clone YOUR_GITHUB_REPOSITORY_URL
 ```
+
+Navigate to the application directory:
+
+```bash
+cd react-app
+```
+
+Install dependencies:
+
+```bash
+yarn install
+```
+
+Start the development server:
+
+```bash
+yarn dev
+```
+
+Open the local URL displayed in your terminal.
+
+### Production Build
+
+```bash
+yarn build
+```
+
+### Code Quality
+
+```bash
+yarn lint
+```
+
+## Development Roadmap
+
+CRAFT is under active development.
+
+Planned improvements include:
+
+- Backend API using Node.js and Express.
+- PostgreSQL database integration.
+- Persistent incident and operations data.
+- User authentication and role-based access control.
+- Technician and team management.
+- Live operational map.
+- Analytics and reporting.
+- AI-powered incident analysis and operational assistance.
+- Controlled AI actions with permission checks and user confirmation.
+
+## Engineering Approach
+
+The project follows these principles:
+
+- Modular and reusable components.
+- Type-safe development with TypeScript.
+- Separation of application responsibilities.
+- Incremental feature development.
+- Build and functionality verification.
+- Secure backend and AI integration as the architecture evolves.
+
+## Project Status
+
+**Status:** Active Development
+
+CRAFT currently contains a functional frontend prototype. Backend integration, persistent storage, authentication, and AI capabilities are planned development milestones and are not yet implemented.
+
+---
+
+**CRAFT — Building smarter operations, one feature at a time.**

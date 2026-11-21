@@ -40,9 +40,12 @@ const Operations = () => {
     },
   ];
 
-    const [activeFilter, setActiveFilter] = useState("All");
-    
-    
+  const [activeFilter, setActiveFilter] = useState("All");
+
+  const filteredOperations =
+    activeFilter === "All"
+      ? operations
+      : operations.filter((operation) => operation.status === activeFilter);
 
   return (
     <div className="space-y-6">
@@ -58,7 +61,12 @@ const Operations = () => {
           {["All", "Active", "Standby", "Completed"].map((filter) => (
             <button
               key={filter}
-              className="rounded-lg border border-slate-700 bg-slate-900 px-4 py-2 text-sm text-slate-300 transition hover:bg-slate-800"
+              onClick={() => setActiveFilter(filter)}
+              className={`rounded-lg border px-4 py-2 text-sm transition ${
+                activeFilter === filter
+                  ? "border-blue-500 bg-blue-600 text-white"
+                  : "border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800"
+              }`}
             >
               {filter}
             </button>
@@ -97,7 +105,7 @@ const Operations = () => {
             </thead>
 
             <tbody className="divide-y divide-slate-800">
-              {operations.map((operation) => (
+              {filteredOperations.map((operation) => (
                 <tr
                   key={operation.id}
                   className="transition hover:bg-slate-800/40"
@@ -134,6 +142,17 @@ const Operations = () => {
                   </td>
                 </tr>
               ))}
+
+              {filteredOperations.length === 0 && (
+                <tr>
+                  <td
+                    colSpan={6}
+                    className="px-5 py-8 text-center text-sm text-slate-400"
+                  >
+                    No operations found.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
