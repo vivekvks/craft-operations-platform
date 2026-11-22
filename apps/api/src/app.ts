@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import incidentRoutes from "./modules/incidents/incident.routes.js";
 
 const app = express();
 
@@ -13,5 +14,7 @@ app.get("/api/health", (_req, res) => {
     timestamp: new Date().toISOString(),
   });
 });
+
+app.use("/api/incidents", incidentRoutes);
 
 export default app;
