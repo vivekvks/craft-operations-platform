@@ -1,62 +1,18 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import IncidentDetails from "./IncidentDetails";
 import IncidentStats from "./IncidentStats";
 import IncidentTable, { type Incident } from "./IncidentTable";
 import CreateIncidentModal from "./CreateIncidentModal";
 
-const initialIncidents: Incident[] = [
-  {
-    id: "INC-1048",
-    title: "Production API latency",
-    severity: "Critical",
-    status: "Investigating",
-    service: "API Gateway",
-    team: "Platform",
-    created: "2m ago",
-  },
-  {
-    id: "INC-1047",
-    title: "Database connection pool",
-    severity: "High",
-    status: "Monitoring",
-    service: "PostgreSQL",
-    team: "Infrastructure",
-    created: "18m ago",
-  },
-  {
-    id: "INC-1046",
-    title: "Delayed notification delivery",
-    severity: "Medium",
-    status: "Investigating",
-    service: "Notifications",
-    team: "Messaging",
-    created: "34m ago",
-  },
-  {
-    id: "INC-1045",
-    title: "Worker memory threshold",
-    severity: "High",
-    status: "Resolved",
-    service: "Job Workers",
-    team: "Platform",
-    created: "1h ago",
-  },
-  {
-    id: "INC-1044",
-    title: "Analytics sync delay",
-    severity: "Low",
-    status: "Resolved",
-    service: "Analytics",
-    team: "Data",
-    created: "2h ago",
-  },
-];
+import { createIncident, getIncidents } from "@/services/incidentService";
 
 export default function Incidents() {
-  const [incidents, setIncidents] = useState<Incident[]>(initialIncidents);
+  const [incidents, setIncidents] = useState<Incident[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const [selectedIncident, setSelectedIncident] = useState<Incident | null>(
-    null
+    null,
   );
 
   const [search, setSearch] = useState("");
@@ -66,11 +22,47 @@ export default function Incidents() {
   >("All");
 
   const [statusFilter, setStatusFilter] = useState<"All" | Incident["status"]>(
-    "All"
+    "All",
   );
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
+  // Load incidents from PostgreSQL
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadIncidents = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+
+        const data = await getIncidents();
+
+        if (isMounted) {
+          setIncidents(data);
+          setSelectedIncident(data[0] ?? null);
+        }
+      } catch (err) {
+        if (isMounted) {
+          setError(
+            err instanceof Error ? err.message : "Failed to load incidents",
+          );
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    loadIncidents();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Filter incidents
   const filteredIncidents = useMemo(() => {
     const query = search.trim().toLowerCase();
 
@@ -92,39 +84,27 @@ export default function Incidents() {
     });
   }, [incidents, search, severityFilter, statusFilter]);
 
+  // Update incident status locally
   const handleStatusChange = (
     incidentId: string,
-    status: Incident["status"]
+    status: Incident["status"],
   ) => {
     setIncidents((current) =>
       current.map((incident) =>
-        incident.id === incidentId ? { ...incident, status } : incident
-      )
+        incident.id === incidentId ? { ...incident, status } : incident,
+      ),
     );
 
     setSelectedIncident((current) =>
-      current?.id === incidentId ? { ...current, status } : current
+      current?.id === incidentId ? { ...current, status } : current,
     );
   };
 
-  const handleCreateIncident = (
-    data: Pick<Incident, "title" | "severity" | "service" | "team">
-  ) => {
-    const nextId =
-      Math.max(
-        1048,
-        ...incidents.map((incident) => {
-          const match = incident.id.match(/^INC-(\d+)$/);
-          return match ? Number(match[1]) : 1048;
-        })
-      ) + 1;
-
-    const newIncident: Incident = {
-      id: `INC-${nextId}`,
-      ...data,
-      status: "Investigating",
-      created: "Just now",
-    };
+  // Create incident through the backend API
+  const handleCreateIncident = async (
+    data: Pick<Incident, "title" | "severity" | "service" | "team">,
+  ): Promise<void> => {
+    const newIncident = await createIncident(data);
 
     setIncidents((current) => [newIncident, ...current]);
     setSelectedIncident(newIncident);
@@ -168,6 +148,20 @@ export default function Incidents() {
       {/* Stats */}
       <IncidentStats incidents={incidents} />
 
+      {/* Loading state */}
+      {isLoading && (
+        <div className="py-8 text-center text-sm text-slate-400">
+          Loading incidents...
+        </div>
+      )}
+
+      {/* Error state */}
+      {error && (
+        <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-400">
+          {error}
+        </div>
+      )}
+
       {/* Filters */}
       <div className="rounded-xl border border-white/10 bg-[#10141c] p-4">
         <div className="flex flex-col gap-3 lg:flex-row">
@@ -185,7 +179,7 @@ export default function Incidents() {
             value={severityFilter}
             onChange={(event) =>
               setSeverityFilter(
-                event.target.value as "All" | Incident["severity"]
+                event.target.value as "All" | Incident["severity"],
               )
             }
             className="rounded-lg border border-white/10 bg-[#0b0f15] px-3 py-2.5 text-xs text-slate-400 outline-none focus:border-indigo-500/40"
@@ -225,19 +219,21 @@ export default function Incidents() {
       </div>
 
       {/* Table + details */}
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1.6fr)_360px]">
-        <IncidentTable
-          incidents={filteredIncidents}
-          selectedIncident={selectedIncident}
-          onSelect={setSelectedIncident}
-        />
+      {!isLoading && !error && (
+        <div className="grid gap-5 xl:grid-cols-[minmax(0,1.6fr)_360px]">
+          <IncidentTable
+            incidents={filteredIncidents}
+            selectedIncident={selectedIncident}
+            onSelect={setSelectedIncident}
+          />
 
-        <IncidentDetails
-          incident={selectedIncident}
-          onClose={() => setSelectedIncident(null)}
-          onStatusChange={handleStatusChange}
-        />
-      </div>
+          <IncidentDetails
+            incident={selectedIncident}
+            onClose={() => setSelectedIncident(null)}
+            onStatusChange={handleStatusChange}
+          />
+        </div>
+      )}
 
       {/* Create incident modal */}
       {isCreateModalOpen && (
