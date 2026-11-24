@@ -4,8 +4,8 @@ import type { Incident } from "./IncidentTable";
 type CreateIncidentModalProps = {
   onClose: () => void;
   onCreate: (
-    incident: Pick<Incident, "title" | "severity" | "service" | "team">
-  ) => void;
+    incident: Pick<Incident, "title" | "severity" | "service" | "team">,
+  ) => Promise<void>;
 };
 
 export default function CreateIncidentModal({
@@ -17,21 +17,39 @@ export default function CreateIncidentModal({
   const [service, setService] = useState("");
   const [team, setTeam] = useState("");
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    onCreate({
-      title: title.trim(),
-      severity,
-      service: service.trim(),
-      team: team.trim(),
-    });
+    if (isSubmitting) return;
+
+    try {
+      setIsSubmitting(true);
+      setError(null);
+
+      await onCreate({
+        title: title.trim(),
+        severity,
+        service: service.trim(),
+        team: team.trim(),
+      });
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Failed to create incident. Please try again.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
-      onClick={onClose}
+      onClick={isSubmitting ? undefined : onClose}
     >
       <div
         role="dialog"
@@ -62,8 +80,9 @@ export default function CreateIncidentModal({
           <button
             type="button"
             onClick={onClose}
+            disabled={isSubmitting}
             aria-label="Close modal"
-            className="text-lg text-slate-500 transition hover:text-white"
+            className="text-lg text-slate-500 transition hover:text-white disabled:opacity-40"
           >
             ×
           </button>
@@ -88,7 +107,8 @@ export default function CreateIncidentModal({
               value={title}
               onChange={(event) => setTitle(event.target.value)}
               placeholder="e.g. Production API outage"
-              className="w-full rounded-lg border border-white/10 bg-[#0b0f15] px-3 py-2.5 text-sm text-white outline-none placeholder:text-slate-700 focus:border-indigo-500/50"
+              disabled={isSubmitting}
+              className="w-full rounded-lg border border-white/10 bg-[#0b0f15] px-3 py-2.5 text-sm text-white outline-none placeholder:text-slate-700 focus:border-indigo-500/50 disabled:opacity-50"
             />
           </div>
 
@@ -106,7 +126,8 @@ export default function CreateIncidentModal({
               onChange={(event) =>
                 setSeverity(event.target.value as Incident["severity"])
               }
-              className="w-full rounded-lg border border-white/10 bg-[#0b0f15] px-3 py-2.5 text-sm text-slate-300 outline-none focus:border-indigo-500/50"
+              disabled={isSubmitting}
+              className="w-full rounded-lg border border-white/10 bg-[#0b0f15] px-3 py-2.5 text-sm text-slate-300 outline-none focus:border-indigo-500/50 disabled:opacity-50"
             >
               <option value="Critical">Critical</option>
               <option value="High">High</option>
@@ -131,7 +152,8 @@ export default function CreateIncidentModal({
               value={service}
               onChange={(event) => setService(event.target.value)}
               placeholder="e.g. API Gateway"
-              className="w-full rounded-lg border border-white/10 bg-[#0b0f15] px-3 py-2.5 text-sm text-white outline-none placeholder:text-slate-700 focus:border-indigo-500/50"
+              disabled={isSubmitting}
+              className="w-full rounded-lg border border-white/10 bg-[#0b0f15] px-3 py-2.5 text-sm text-white outline-none placeholder:text-slate-700 focus:border-indigo-500/50 disabled:opacity-50"
             />
           </div>
 
@@ -151,25 +173,35 @@ export default function CreateIncidentModal({
               value={team}
               onChange={(event) => setTeam(event.target.value)}
               placeholder="e.g. Infrastructure"
-              className="w-full rounded-lg border border-white/10 bg-[#0b0f15] px-3 py-2.5 text-sm text-white outline-none placeholder:text-slate-700 focus:border-indigo-500/50"
+              disabled={isSubmitting}
+              className="w-full rounded-lg border border-white/10 bg-[#0b0f15] px-3 py-2.5 text-sm text-white outline-none placeholder:text-slate-700 focus:border-indigo-500/50 disabled:opacity-50"
             />
           </div>
+
+          {/* Error message */}
+          {error && (
+            <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-xs text-red-400">
+              {error}
+            </div>
+          )}
 
           {/* Actions */}
           <div className="flex justify-end gap-3 border-t border-white/10 pt-5">
             <button
               type="button"
               onClick={onClose}
-              className="rounded-lg border border-white/10 px-4 py-2.5 text-xs font-medium text-slate-400 transition hover:bg-white/5 hover:text-white"
+              disabled={isSubmitting}
+              className="rounded-lg border border-white/10 px-4 py-2.5 text-xs font-medium text-slate-400 transition hover:bg-white/5 hover:text-white disabled:opacity-40"
             >
               Cancel
             </button>
 
             <button
               type="submit"
-              className="rounded-lg bg-white px-4 py-2.5 text-xs font-semibold text-slate-900 transition hover:bg-slate-200"
+              disabled={isSubmitting}
+              className="rounded-lg bg-white px-4 py-2.5 text-xs font-semibold text-slate-900 transition hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              Create Incident
+              {isSubmitting ? "Creating..." : "Create Incident"}
             </button>
           </div>
         </form>
